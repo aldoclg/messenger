@@ -1,0 +1,7 @@
+
+spring
+  data
+    hbase
+      zkQuorum=localhost:2181
+      zkBasePath=/hbase
+      rootDir=file:///usr/local/hbase
