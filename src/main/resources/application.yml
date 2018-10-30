@@ -1,7 +1,15 @@
-
-spring
-  data
-    hbase
-      zkQuorum=localhost:2181
-      zkBasePath=/hbase
-      rootDir=file:///usr/local/hbase
+server:
+  port: 8080
+  contextPath: /messenger
+spring:
+  application:
+    name: messenger
+  data:
+    hbase:
+      zkQuorum: localhost:2181
+      zkBasePath: /hbase
+      rootDir: file:///usr/local/hbase
+    mongodb:
+      host: 127.0.0.1
+      port: 27017
+      database: messengerdb

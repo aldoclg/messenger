@@ -8,8 +8,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.hadoop.hbase.HbaseTemplate;
 
 @Configuration
-@EnableConfigurationProperties(HbaseConfig.class)
-public class HbaseConfig {
+@EnableConfigurationProperties(HbaseProperties.class)
+public class HbaseConfiguration {
 
     @Autowired
     private HbaseProperties hbaseProperties;

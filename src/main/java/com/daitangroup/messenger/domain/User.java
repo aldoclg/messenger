@@ -1,20 +1,22 @@
 package com.daitangroup.messenger.domain;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.bson.types.ObjectId;
+import org.codehaus.jackson.map.annotate.JsonDeserialize;
 import org.springframework.data.annotation.PersistenceConstructor;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.annotation.Id;
 
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import java.util.Objects;
 
 @Document
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private ObjectId _id;
+
     @Indexed
     private String email;
 
@@ -27,20 +29,26 @@ public class User {
 
     private String role;
 
+    @JsonCreator
     @PersistenceConstructor
-    public User(String name, String lastName, String password, String email) {
+    public User(@JsonProperty(value = "name", required = true) String name,
+                @JsonProperty(value = "lastName", required = true)String lastName,
+                @JsonProperty(value = "password", required = true)String password,
+                @JsonProperty(value = "email", required = true)String email,
+                @JsonProperty(value = "role", required = true)String role) {
         this.name = name;
         this.lastName = lastName;
         this.password = password;
         this.email = email;
+        this.role = role;
     }
 
-    public long getId() {
-        return id;
+    public String getId() {
+        return _id.toStringMongod();
     }
 
-    public void setId(long id) {
-        this.id = id;
+    public void setId(ObjectId id) {
+        this._id = id;
     }
 
     public String getEmail() {
@@ -88,12 +96,23 @@ public class User {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return id == user.id &&
+        return _id == user._id &&
                 Objects.equals(email, user.email);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, email);
+        return Objects.hash(_id, email);
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "_id=" + _id +
+                ", email='" + email + '\'' +
+                ", name='" + name + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", role='" + role + '\'' +
+                '}';
     }
 }
