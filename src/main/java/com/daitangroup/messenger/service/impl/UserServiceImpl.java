@@ -6,7 +6,6 @@ import com.daitangroup.messenger.service.UserService;
 import org.apache.logging.log4j.util.Strings;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -14,6 +13,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -31,13 +31,26 @@ public class UserServiceImpl implements UserService {
     PasswordEncoder passwordEncoder;
 
     @Override
-    public User findUserByEmail(String email) {
+    public Optional<User> findUserByEmail(String email) {
         return userRepository.findByEmail(email);
     }
 
     @Override
-    public List<User> findUserByRegex(String name, String lastName) {
-        return null;
+    public List<User> findUserByNameOrLastName(String name, String lastName, Pageable pageable) {
+        if (Strings.isNotBlank(name) && Strings.isNotBlank(lastName)) {
+            return userRepository.findByNameAndLastName(name, lastName, pageable)
+                    .stream()
+                    .collect(Collectors.toList());
+        } else if (Strings.isNotBlank(name)) {
+            return userRepository.findByName(name, pageable)
+                    .stream()
+                    .collect(Collectors.toList());
+        } else if (Strings.isNotBlank(lastName)) {
+            return userRepository.findByLastName(lastName, pageable)
+                    .stream()
+                    .collect(Collectors.toList());
+        }
+        return Collections.emptyList();
     }
 
     @Override
@@ -48,10 +61,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void update(String id, User user) {
-        System.out.println(user);
         final Criteria criteria = new Criteria().orOperator(Criteria.where("_id").is(new ObjectId(id)));
 
-        final Update update = MapperObject.newInstance()
+        final Update update = MapperUpdate.newInstance()
                 .withField("name", user.getName())
                 .withField("lastName", user.getLastName())
                 .withField("email", user.getEmail())
@@ -81,15 +93,15 @@ public class UserServiceImpl implements UserService {
         userRepository.deleteById(new ObjectId(id));
     }
 
-    static class MapperObject {
+    static class MapperUpdate {
 
-        private static final MapperObject mappeObject = new MapperObject();
+        private static final MapperUpdate mappeObject = new MapperUpdate();
 
         private Update update = new Update();
 
-        private MapperObject() {}
+        private MapperUpdate() {}
 
-        public static final MapperObject newInstance() {
+        public static final MapperUpdate newInstance() {
             return mappeObject;
         }
 
@@ -99,7 +111,7 @@ public class UserServiceImpl implements UserService {
          * @param value
          * @return
          */
-        public MapperObject withField(String key, Object value) {
+        public MapperUpdate withField(String key, Object value) {
             if(Objects.nonNull(value)) {
                 update.set(key, value);
             }

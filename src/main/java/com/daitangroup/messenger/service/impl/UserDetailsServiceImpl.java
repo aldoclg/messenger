@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Transactional
 @Service
@@ -32,10 +33,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         if (Strings.isBlank(email)) {
             return null;
         }
-        User user = userRepository.findByEmail(email);
-        System.out.println(user.getRole());
-        System.out.println(user.getPassword() + " " + user.getPassword().length());
-        if (Objects.nonNull(user)) {
+        Optional<User> userOptional = userRepository.findByEmail(email);
+
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
             List<SimpleGrantedAuthority> authorities = Arrays.asList(new SimpleGrantedAuthority(user.getRole()));
 
             return new org.springframework.security.core.userdetails.User(user.getEmail(),

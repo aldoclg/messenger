@@ -55,7 +55,12 @@ public class ChatManagerControllerImpl implements ChatManagerController {
     public Resources<Resource<User>> findUserByName(@RequestParam("name") String name,
                                                     @RequestParam("lastName") String lastName,
                                                     @RequestHeader("Range") String range) {
-        return null;
+        Pageable pageable = createPageRequest(validateRange(range));
+        List<Resource<User>> users = userService.findUserByNameOrLastName(name, lastName, pageable)
+                .stream()
+                .map(assembler::toResource)
+                .collect(Collectors.toList());
+        return new Resources<>(users);
     }
 
     @Override
