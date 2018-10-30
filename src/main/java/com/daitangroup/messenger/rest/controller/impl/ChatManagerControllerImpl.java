@@ -11,12 +11,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.Resources;
-import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@PreAuthorize("hasRole('USER')")
 public class ChatManagerControllerImpl implements ChatManagerController {
 
     private static final int PAGE = 20;
@@ -28,14 +29,14 @@ public class ChatManagerControllerImpl implements ChatManagerController {
     private UserResourceAssembler assembler;
 
     @Override
-    @Secured("ADMIN")
+    @PreAuthorize("hasRole('ADMIN')")
     @RequestMapping(value = "/users", method = RequestMethod.PUT)
     public void saveUser(@RequestBody User user) {
         userService.save(user);
     }
 
     @Override
-    @Secured("ADMIN")
+    @PreAuthorize("hasRole('ADMIN')")
     @RequestMapping(value = "/users/{id}", method = RequestMethod.POST)
     public void updateUser(@RequestBody User user,
                            @PathVariable("id") String id) {
@@ -43,7 +44,7 @@ public class ChatManagerControllerImpl implements ChatManagerController {
     }
 
     @Override
-    @Secured("ADMIN")
+    @PreAuthorize("hasRole('ADMIN')")
     @RequestMapping(value = "/users", method = RequestMethod.DELETE)
     public void deleteUser(String id) {
         userService.delete(id);
@@ -51,24 +52,17 @@ public class ChatManagerControllerImpl implements ChatManagerController {
 
     @Override
     @RequestMapping(value = "/users", method = RequestMethod.POST)
-    public Resource<User> findUser(@RequestParam("name") long name,
-                                   @RequestParam("lastName") long lastName,
-                                   @RequestParam("email") String email) {
+    public Resources<Resource<User>> findUserByName(@RequestParam("name") String name,
+                                                    @RequestParam("lastName") String lastName,
+                                                    @RequestHeader("Range") String range) {
         return null;
     }
 
     @Override
-    @Secured("ADMIN")
     @RequestMapping(value = "/users", method = RequestMethod.GET)
     public Resources<Resource<User>> findAllUsers(@RequestHeader("Range") String range) {
-        int[] rangeInt = parseRange(range);
-        if (rangeInt.length == 0) {
 
-        }
-        if (rangeInt[1] < rangeInt[0]) {
-
-        }
-        Pageable pageable = createPageRequest(rangeInt);
+        Pageable pageable = createPageRequest(validateRange(range));
 
         List<Resource<User>> users = userService.findAll(pageable)
                 .stream()
@@ -79,10 +73,21 @@ public class ChatManagerControllerImpl implements ChatManagerController {
 
     @Override
     @RequestMapping(value = "/chats/{chatId}/messages", method = RequestMethod.GET)
-    public Resources<Resource<MessageInfo>> findMessage(@PathVariable("id") String chatId, @RequestHeader("Range") String range) {
+    public Resources<Resource<MessageInfo>> findMessage(@PathVariable("id") String chatId,
+                                                        @RequestHeader("Range") String range) {
         return null;
     }
 
+    private int[] validateRange(String range) {
+        int[] rangeInt = parseRange(range);
+        if (rangeInt.length == 0) {
+
+        }
+        if (rangeInt[1] < rangeInt[0]) {
+
+        }
+        return rangeInt;
+    }
 
     private Pageable createPageRequest(int[] range) {
         int page = range[0] / PAGE;

@@ -6,6 +6,7 @@ import com.daitangroup.messenger.domain.User;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.Resources;
 
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,7 +19,7 @@ public interface ChatManagerController {
 
     public void deleteUser(String id);
 
-    public Resource<User> findUser(long name, long lastName,String email);
+    public Resources<Resource<User>> findUserByName(String name, String lastName, String range);
 
     public Resources<Resource<User>> findAllUsers(String range);
 
