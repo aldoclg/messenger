@@ -15,14 +15,15 @@ public class WebConfiguration implements WebMvcConfigurer {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {}
 
     @Bean
+    public UserService userService() {
+        return new UserServiceImpl();
+    }
+
+    @Bean
     public ChatManagerController chatManagerController() {
         return new ChatManagerControllerImpl();
     }
 
-    @Bean
-    public UserService userService() {
-        return new UserServiceImpl();
-    }
 
     public void addCorsMapping(CorsRegistry registry) {
         registry.addMapping("/api/v1/**")

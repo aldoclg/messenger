@@ -1,5 +1,7 @@
 package com.daitangroup.messenger.rest.controller.impl;
 
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.*;
+
 import com.daitangroup.messenger.domain.MessageInfo;
 import com.daitangroup.messenger.domain.User;
 import com.daitangroup.messenger.rest.component.UserResourceAssembler;
@@ -11,13 +13,19 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.Resources;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-@PreAuthorize("hasRole('USER')")
+@PreAuthorize("hasRole('USER') OR hasRole('ADMIN')")
 public class ChatManagerControllerImpl implements ChatManagerController {
 
     private static final int PAGE = 20;
@@ -31,65 +39,105 @@ public class ChatManagerControllerImpl implements ChatManagerController {
     @Override
     @PreAuthorize("hasRole('ADMIN')")
     @RequestMapping(value = "/users", method = RequestMethod.PUT)
-    public void saveUser(@RequestBody User user) {
+    public HttpEntity<User> saveUser(@RequestBody User user) {
+        if (userService.findUserByEmail(user.getEmail()).isPresent()) {
+            return new ResponseEntity("User already exists", HttpStatus.CONFLICT);
+        }
         userService.save(user);
+        return new ResponseEntity(new Resource<User>(user,
+                linkTo(methodOn(ChatManagerController.class).findUserById(user.getId())).withSelfRel()), HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
     @RequestMapping(value = "/users/{id}", method = RequestMethod.POST)
-    public void updateUser(@RequestBody User user,
-                           @PathVariable("id") String id) {
+    public HttpEntity<User> updateUser(@RequestBody User user,
+                                       @PathVariable("id") String id) {
+        System.out.println(user);
         userService.update(id, user);
+        return ResponseEntity.noContent().build();
     }
 
     @Override
     @PreAuthorize("hasRole('ADMIN')")
-    @RequestMapping(value = "/users", method = RequestMethod.DELETE)
-    public void deleteUser(String id) {
+    @RequestMapping(value = "/users/{id}", method = RequestMethod.DELETE)
+    public HttpEntity<User> deleteUser(@PathVariable("id") String id) {
         userService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    @RequestMapping(value = "/users/{id}", method = RequestMethod.GET)
+    public HttpEntity<Resource<User>> findUserById(@PathVariable("id") String id) {
+        Optional<User> userOptional = userService.find(id);
+        if (userOptional.isPresent())
+        {
+            return new ResponseEntity<>(new Resource<User>(userOptional.get(),
+                    linkTo(methodOn(ChatManagerController.class).findUserById(id)).withSelfRel()), HttpStatus.OK);
+        }
+        return new ResponseEntity("User with id " + id + " not found.", HttpStatus.NOT_FOUND);
     }
 
     @Override
     @RequestMapping(value = "/users", method = RequestMethod.POST)
-    public Resources<Resource<User>> findUserByName(@RequestParam("name") String name,
-                                                    @RequestParam("lastName") String lastName,
-                                                    @RequestHeader("Range") String range) {
-        Pageable pageable = createPageRequest(validateRange(range));
-        List<Resource<User>> users = userService.findUserByNameOrLastName(name, lastName, pageable)
-                .stream()
-                .map(assembler::toResource)
-                .collect(Collectors.toList());
-        return new Resources<>(users);
+    public HttpEntity<Resources<Resource<User>>> findUserByName(@RequestParam(name = "name", required = false) String name,
+                                                                @RequestParam(name = "lastName", required = false) String lastName,
+                                                                @RequestHeader("Range") String range) {
+        List<Resource<User>> users = Collections.emptyList();
+
+        try {
+            Pageable pageable = createPageRequest(validateRange(range));
+            if (Strings.isBlank(name) && Strings.isBlank(lastName)) {
+                return new ResponseEntity<>(new Resources<>(users), HttpStatus.OK);
+            }
+            users = userService.findUserByNameOrLastName(name, lastName, pageable)
+                    .stream()
+                    .map(assembler::toResource)
+                    .collect(Collectors.toList());
+            return new ResponseEntity<>(new Resources<>(users), HttpStatus.PARTIAL_CONTENT);
+        }
+        catch (IllegalArgumentException | IndexOutOfBoundsException e) {
+            return new ResponseEntity<>(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE);
+        }
     }
 
     @Override
     @RequestMapping(value = "/users", method = RequestMethod.GET)
-    public Resources<Resource<User>> findAllUsers(@RequestHeader("Range") String range) {
+    public HttpEntity<Resources<Resource<User>>> findAllUsers(@RequestHeader("Range") String range) {
+        try {
+            Pageable pageable = createPageRequest(validateRange(range));
 
-        Pageable pageable = createPageRequest(validateRange(range));
-
-        List<Resource<User>> users = userService.findAll(pageable)
-                .stream()
-                .map(assembler::toResource)
-                .collect(Collectors.toList());
-        return new Resources<>(users);
+            List<Resource<User>> users = userService.findAll(pageable)
+                    .stream()
+                    .map(assembler::toResource)
+                    .collect(Collectors.toList());
+            return new ResponseEntity<>(new Resources<>(users), HttpStatus.PARTIAL_CONTENT);
+        }
+        catch (IllegalArgumentException | IndexOutOfBoundsException e) {
+            return new ResponseEntity<>(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE);
+        }
     }
 
     @Override
     @RequestMapping(value = "/chats/{chatId}/messages", method = RequestMethod.GET)
-    public Resources<Resource<MessageInfo>> findMessage(@PathVariable("id") String chatId,
-                                                        @RequestHeader("Range") String range) {
-        return null;
+    public HttpEntity<Resources<Resource<MessageInfo>>> findMessage(@PathVariable("id") String chatId,
+                                                                    @RequestHeader("Range") String range) {
+        try {
+            Pageable pageable = createPageRequest(validateRange(range));
+            return null;
+        }
+        catch (IllegalArgumentException | IndexOutOfBoundsException e) {
+            return new ResponseEntity<>(HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE);
+        }
     }
 
     private int[] validateRange(String range) {
         int[] rangeInt = parseRange(range);
         if (rangeInt.length == 0) {
-
+            throw new IllegalArgumentException("Range not Satisfiable");
         }
         if (rangeInt[1] < rangeInt[0]) {
-
+            throw new IndexOutOfBoundsException("Initial param is bigger than second param");
         }
         return rangeInt;
     }

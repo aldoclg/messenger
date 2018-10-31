@@ -1,10 +1,9 @@
 package com.daitangroup.messenger.domain;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.bson.types.ObjectId;
-import org.codehaus.jackson.map.annotate.JsonDeserialize;
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.springframework.data.annotation.PersistenceConstructor;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -33,7 +32,7 @@ public class User {
     @PersistenceConstructor
     public User(@JsonProperty(value = "name", required = true) String name,
                 @JsonProperty(value = "lastName", required = true)String lastName,
-                @JsonProperty(value = "password", required = true)String password,
+                @JsonProperty(value = "password", required = false)String password,
                 @JsonProperty(value = "email", required = true)String email,
                 @JsonProperty(value = "role", required = true)String role) {
         this.name = name;

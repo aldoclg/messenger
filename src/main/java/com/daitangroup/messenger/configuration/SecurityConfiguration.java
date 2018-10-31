@@ -19,8 +19,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
-@EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableWebSecurity(debug = true)
+@EnableGlobalMethodSecurity(prePostEnabled = true, proxyTargetClass = true)
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Bean
@@ -32,29 +32,25 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()
                 .authorizeRequests()
-                    .antMatchers("/webjars/**", "/static/**", "/", "/login").permitAll()
-                    .antMatchers("/api/v1/**").hasAnyRole("ADMIN", "AUDIT", "USER")
+                .antMatchers("/webjars/**", "/static/**", "/", "/login").permitAll()
+                .antMatchers("/api/v1/**").hasAnyRole("ADMIN", "AUDIT", "USER")
                 .and()
-                .formLogin()
-                    .permitAll()
-                    .loginProcessingUrl("/login")
+                .formLogin().permitAll().loginProcessingUrl("/login")
                 .and()
                 .logout().permitAll();
     }
 
-    @Bean
-    public PasswordEncoder delegatingPasswordEncoder() {
-        PasswordEncoder defaultEncoder = new StandardPasswordEncoder();
-        Map<String, PasswordEncoder> encoders = new HashMap<>();
-        encoders.put("bcrypt", new BCryptPasswordEncoder());
-        encoders.put("scrypt", new SCryptPasswordEncoder());
-
-        DelegatingPasswordEncoder passworEncoder = new DelegatingPasswordEncoder(
-                "bcrypt", encoders);
-        passworEncoder.setDefaultPasswordEncoderForMatches(defaultEncoder);
-
-        return passworEncoder;
+    /*@Override
+    public void configure(WebSecurity web) throws Exception {
+        web.expressionHandler(defaultWebSecurityExpressionHandler());
     }
+
+    @Bean
+    protected DefaultWebSecurityExpressionHandler defaultWebSecurityExpressionHandler() {
+        DefaultWebSecurityExpressionHandler defaultWebSecurityExpressionHandler = new DefaultWebSecurityExpressionHandler();
+        defaultWebSecurityExpressionHandler.setDefaultRolePrefix("");
+        return defaultWebSecurityExpressionHandler;
+    }*/
 
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -62,4 +58,16 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .userDetailsService(userDetailsService())
                 .passwordEncoder(delegatingPasswordEncoder());
     }
+
+    @Bean
+    protected PasswordEncoder delegatingPasswordEncoder() {
+        PasswordEncoder defaultEncoder = new StandardPasswordEncoder();
+        Map<String, PasswordEncoder> encoders = new HashMap<>();
+        encoders.put("bcrypt", new BCryptPasswordEncoder());
+        encoders.put("scrypt", new SCryptPasswordEncoder());
+        DelegatingPasswordEncoder passworEncoder = new DelegatingPasswordEncoder("bcrypt", encoders);
+        passworEncoder.setDefaultPasswordEncoderForMatches(defaultEncoder);
+        return passworEncoder;
+    }
+
 }

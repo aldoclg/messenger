@@ -1,6 +1,5 @@
 package com.daitangroup.messenger.service;
 
-import org.bson.types.ObjectId;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
