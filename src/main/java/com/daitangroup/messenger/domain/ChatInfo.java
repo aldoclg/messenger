@@ -1,35 +1,45 @@
 package com.daitangroup.messenger.domain;
 
+import com.daitangroup.messenger.constants.ConstantsUtils;
 import org.apache.hadoop.hbase.util.Bytes;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.Date;
 
-public class Chat {
+public class ChatInfo {
 
-    public static final byte[] collumnFamillyChatAsBytes = Bytes.toBytes("CF_CHAT");
+    public static final byte[] tableNameAsBytes = Bytes.toBytes(ConstantsUtils.CHAT_TABLE);
+    public static final String columnFamillyChat = "CF_CHAT";
+    public static final byte[] columnFamillyChatAsBytes = Bytes.toBytes(columnFamillyChat);
     public static final byte[] chatIdAsBytes = Bytes.toBytes("chatId");
     public static final byte[] chatNameAsBytes = Bytes.toBytes("chatName");
-    public static final byte[] membersAsBytes = Bytes.toBytes("members");
+    public static final byte[] userIdAsBytes = Bytes.toBytes("userId");
 
-    private long chatId;
+    private String chatId;
 
     private String chatName;
 
-    private List<Long> members;
+    private String userId;
 
-    public Chat(long chatId, String chatName, List<Long> members) {
-        this.chatId = chatId;
-        this.chatName = chatName;
-        this.members = members;
+    private long timestamp;
+
+    public ChatInfo(byte[] chatId, byte[] chatName, byte[] userId, long timestamp) {
+        this.chatId = Bytes.toString(chatId);
+        this.chatName = Bytes.toString(chatName);
+        this.userId = Bytes.toString(userId);
+        this.timestamp = timestamp;
     }
 
-    public long getChatId() {
+    public ChatInfo(String chatId, String chatName, String userId) {
+        this.chatId = chatId;
+        this.chatName = chatName;
+        this.userId = userId;
+    }
+
+    public String getChatId() {
         return chatId;
     }
 
-    public void setChatId(long chatId) {
+    public void setChatId(String chatId) {
         this.chatId = chatId;
     }
 
@@ -41,32 +51,19 @@ public class Chat {
         this.chatName = chatName;
     }
 
-    public List<Long> getMembers() {
-        return members;
+    public String getUserId() {
+        return userId;
     }
 
-    public void setMembers(List<Long> members) {
-        this.members = members;
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
-    public void addMember(long userId) {
-        members.add(userId);
+    public long getTimestamp() {
+        return timestamp;
     }
 
-    public void removeMember(long userId) {
-        members.remove(userId);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Chat chat = (Chat) o;
-        return chatId == chat.chatId;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(chatId);
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
     }
 }

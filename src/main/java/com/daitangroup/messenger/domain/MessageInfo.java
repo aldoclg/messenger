@@ -1,82 +1,68 @@
 package com.daitangroup.messenger.domain;
 
+import com.daitangroup.messenger.constants.ConstantsUtils;
 import org.apache.hadoop.hbase.util.Bytes;
 
-import java.util.Date;
-import java.util.Objects;
 
+public class MessageInfo {
 
-public class Message {
+    public static final byte[] tableNameAsBytes = Bytes.toBytes(ConstantsUtils.MESSAGE_TABLE);
+    public static final String columnFamillyMessageInfo = "CF_MESSAGE_INFO";
+    public static final byte[] columnFamillyMessageAsBytes = Bytes.toBytes(columnFamillyMessageInfo);
+    public static final byte[] chatIdAsBytes = Bytes.toBytes("chatId");
+    public static final byte[] contentAsBytes = Bytes.toBytes("content");
+    public static final byte[] fromUserIdAsBytes = Bytes.toBytes("fromUserId");
 
-    public static final byte[] collumnFamillyMessageAsBytes = Bytes.toBytes("CF_MESSAGE");
-    public static final byte[] messageIdAsBytes = Bytes.toBytes("messageId");
-    public static final byte[] messageValueAsBytes = Bytes.toBytes("messageValue");
-    public static final byte[] fromUserAsBytes = Bytes.toBytes("fromUser");
-    public static final byte[] timestampAsBytes = Bytes.toBytes("timestamp");
-    public static final byte[] statusAsBytes = Bytes.toBytes("status");
-
-    private long messageId;
-
-    privaye long ownerId;
-
-    private String messageValue;
-
-    private String fromUser;
-
-    private Date timestamp;
-
-    private int status;
-
-    public long getMessageId() {
-        return messageId;
-    }
-
-    public void setMessageId(long messageId) {
-        this.messageId = messageId;
-    }
-
-    public String getMessageValue() {
-        return messageValue;
-    }
-
-    public void setMessageValue(String messageValue) {
-        this.messageValue = messageValue;
-    }
-
-    public String getFromUser() {
-        return fromUser;
-    }
-
-    public void setFromUser(String fromUser) {
-        this.fromUser = fromUser;
-    }
-
-    public Date getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(Date timestamp) {
+    public MessageInfo(byte[] content, byte[] fromUser, byte[] chatId, long timestamp) {
+        this.content = Bytes.toString(content);
+        this.fromUserId = Bytes.toString(fromUser);
+        this.chatId = Bytes.toString(chatId);
         this.timestamp = timestamp;
     }
 
-    public int getStatus() {
-        return status;
+    public MessageInfo(String content, String fromUser, String chatId) {
+        this.content = content;
+        this.fromUserId = fromUser;
+        this.chatId = chatId;
     }
 
-    public void setStatus(int status) {
-        this.status = status;
+    private String content;
+
+    private String fromUserId;
+
+    private String chatId;
+
+    private long timestamp;
+
+    public String getContent() {
+        return content;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Message message = (Message) o;
-        return messageId == message.messageId;
+    public void setContent(String content) {
+        this.content = content;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(messageId);
+    public String getFromUserId() {
+        return fromUserId;
+    }
+
+    public void setFromUserId(String fromUserId) {
+        this.fromUserId = fromUserId;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public String getChatId() {
+        return chatId;
+    }
+
+    public void setChatId(String chatId) {
+        this.chatId = chatId;
     }
 }

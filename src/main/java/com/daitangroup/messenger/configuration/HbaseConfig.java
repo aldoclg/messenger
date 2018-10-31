@@ -9,7 +9,7 @@ import org.springframework.data.hadoop.hbase.HbaseTemplate;
 
 @Configuration
 @EnableConfigurationProperties(HbaseProperties.class)
-public class HbaseConfiguration {
+public class HbaseConfig {
 
     @Autowired
     private HbaseProperties hbaseProperties;
