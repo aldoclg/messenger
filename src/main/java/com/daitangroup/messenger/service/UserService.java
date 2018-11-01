@@ -10,7 +10,7 @@ import java.util.Optional;
 @Service
 public interface UserService extends CrudService<User> {
 
-    public Optional<User> findUserByEmail(String email);
+    Optional<User> findUserByEmail(String email);
 
-    public List<User> findUserByNameOrLastName(String name, String lastName, Pageable pageable);
+    List<User> findUserByNameOrLastName(String name, String lastName, Pageable pageable);
 }

@@ -12,13 +12,13 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends MongoRepository<User, ObjectId> {
 
-    public void deleteById(ObjectId id);
+     void deleteById(ObjectId id);
 
-    public Optional<User> findByEmail(String email);
+     Optional<User> findByEmail(String email);
 
-    public Page<User> findByName(String name, Pageable pageable);
+     Page<User> findByName(String name, Pageable pageable);
 
-    public Page<User> findByLastName(String lastName, Pageable pageable);
+     Page<User> findByLastName(String lastName, Pageable pageable);
 
-    public Page<User> findByNameAndLastName(String name, String lastName, Pageable pageable);
+     Page<User> findByNameAndLastName(String name, String lastName, Pageable pageable);
 }

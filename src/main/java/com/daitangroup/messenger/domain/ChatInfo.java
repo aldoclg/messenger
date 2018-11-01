@@ -3,8 +3,6 @@ package com.daitangroup.messenger.domain;
 import com.daitangroup.messenger.constants.ConstantsUtils;
 import org.apache.hadoop.hbase.util.Bytes;
 
-import java.util.Date;
-
 public class ChatInfo {
 
     public static final byte[] tableNameAsBytes = Bytes.toBytes(ConstantsUtils.CHAT_TABLE);

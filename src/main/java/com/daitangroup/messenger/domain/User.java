@@ -30,11 +30,11 @@ public class User {
 
     @JsonCreator
     @PersistenceConstructor
-    public User(@JsonProperty(value = "name", required = true) String name,
-                @JsonProperty(value = "lastName", required = true)String lastName,
+    public User(@JsonProperty(value = "name", required = false) String name,
+                @JsonProperty(value = "lastName", required = false)String lastName,
                 @JsonProperty(value = "password", required = false)String password,
-                @JsonProperty(value = "email", required = true)String email,
-                @JsonProperty(value = "role", required = true)String role) {
+                @JsonProperty(value = "email", required = false)String email,
+                @JsonProperty(value = "role", required = false)String role) {
         this.name = name;
         this.lastName = lastName;
         this.password = password;
@@ -42,8 +42,9 @@ public class User {
         this.role = role;
     }
 
+    @JsonProperty(value = "id", required = false)
     public String getId() {
-        return _id.toStringMongod();
+        return _id == null || _id.toStringMongod() == null ? "" : _id.toStringMongod();
     }
 
     public void setId(ObjectId id) {

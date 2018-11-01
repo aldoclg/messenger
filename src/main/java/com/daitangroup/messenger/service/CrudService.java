@@ -7,13 +7,13 @@ import java.util.Optional;
 
 public interface CrudService<T> {
 
-    public void save(T t);
+    void save(T t);
 
-    public void update(String id, T t);
+    void update(String id, T t);
 
-    public Optional<T> find(String id);
+    Optional<T> find(String id);
 
-    public List<T> findAll(Pageable pageable);
+    List<T> findAll(Pageable pageable);
 
-    public void delete(String id);
+    void delete(String id);
 }
