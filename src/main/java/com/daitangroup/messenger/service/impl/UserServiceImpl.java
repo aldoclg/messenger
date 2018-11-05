@@ -6,6 +6,7 @@ import com.daitangroup.messenger.service.UserService;
 import org.apache.logging.log4j.util.Strings;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -37,20 +38,24 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> findUserByNameOrLastName(String name, String lastName, Pageable pageable) {
+
         if (Strings.isNotBlank(name) && Strings.isNotBlank(lastName)) {
-            return userRepository.findByNameAndLastName(name, lastName, pageable)
-                    .stream()
-                    .collect(Collectors.toList());
+
+            return convertPageToList(userRepository.findByNameAndLastName(name, lastName, pageable));
+
         } else if (Strings.isNotBlank(name)) {
-            return userRepository.findByName(name, pageable)
-                    .stream()
-                    .collect(Collectors.toList());
+
+            return convertPageToList(userRepository.findByName(name, pageable));
+
         } else if (Strings.isNotBlank(lastName)) {
-            return userRepository.findByLastName(lastName, pageable)
-                    .stream()
-                    .collect(Collectors.toList());
+
+            return convertPageToList(userRepository.findByLastName(lastName, pageable));
         }
         return Collections.emptyList();
+    }
+
+    private List<User> convertPageToList(Page<User> page) {
+        return page.stream().collect(Collectors.toList());
     }
 
     @Override
@@ -61,20 +66,29 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void update(String id, User user) {
-        final Criteria criteria = new Criteria().orOperator(Criteria.where("_id").is(new ObjectId(id)));
 
-        final Update update = MapperUpdate.newInstance()
+        final Query query = createQuery(id);
+
+        final Update update = createUpdate(user);
+
+        mongoTemplate.findAndModify(query, update, User.class);
+    }
+
+    private Query createQuery(String id) {
+        final Criteria criteria = new Criteria()
+                .orOperator(Criteria.where("_id").is(new ObjectId(id)));
+        return new Query(criteria);
+    }
+
+    private Update createUpdate(User user) {
+        return MapperUpdate.newInstance()
                 .withField("name", user.getName())
                 .withField("lastName", user.getLastName())
                 .withField("email", user.getEmail())
                 .withField("role", user.getRole())
                 .withField("password", user.getPassword() == null ? null : passwordEncoder.encode(user.getPassword()))
                 .build();
-
-       mongoTemplate.findAndModify(new Query(criteria), update, User.class);
     }
-
-
 
     @Override
     public Optional<User> find(String id) {
@@ -99,7 +113,8 @@ public class UserServiceImpl implements UserService {
 
         private Update update = new Update();
 
-        private MapperUpdate() {}
+        private MapperUpdate() {
+        }
 
         public static final MapperUpdate newInstance() {
             return mappeObject;
@@ -107,12 +122,13 @@ public class UserServiceImpl implements UserService {
 
         /**
          * Adds field if it is not null
-         * @param key
-         * @param value
-         * @return
+         *
+         * @param key   the key
+         * @param value the value
+         * @return {@link MapperUpdate}
          */
         public MapperUpdate withField(String key, Object value) {
-            if(Objects.nonNull(value)) {
+            if (Objects.nonNull(value)) {
                 update.set(key, value);
             }
             return this;
