@@ -45,16 +45,12 @@ public class UserServiceImplTest extends AbstractTest {
 
     @Before
     public void setup() {
-        super.setUp();
         objectId = isNull(objectId) ? new ObjectId() : objectId;
         pageable = isNull(pageable) ?  new PageRequest(1,10) : pageable;
         mongoTemplateMock = isNull(mongoTemplateMock) ? mock(MongoTemplate.class) : mongoTemplateMock ;
         userRepositoryMock = isNull(userRepositoryMock) ? mock(UserRepository.class) : userRepositoryMock;
-        userService = isNull(userService) ? new UserServiceImpl() : userService;
+        userService = isNull(userService) ? new UserServiceImpl(userRepositoryMock, mongoTemplateMock, passwordEncoder) : userService;
         user = isNull(user) ? new User("Jose", "Silva", "blabla", "jose@email.com", "USER") : user;
-        ((UserServiceImpl) userService).userRepository = userRepositoryMock;
-        ((UserServiceImpl) userService).mongoTemplate = mongoTemplateMock;
-        ((UserServiceImpl) userService).passwordEncoder = passwordEncoder;
     }
 
     @Test

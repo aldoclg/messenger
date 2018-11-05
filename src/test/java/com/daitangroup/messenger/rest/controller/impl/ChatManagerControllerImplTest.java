@@ -20,12 +20,9 @@ import org.bson.types.ObjectId;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.mockito.Mock;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
 import org.springframework.http.MediaType;
@@ -38,18 +35,20 @@ public class ChatManagerControllerImplTest extends AbstractTest {
 
     static final String URI_BASE = "/api/v1/users";
 
-    ChatManagerController chatManagerController;
-
     @MockBean
     UserService userService;
 
     @MockBean
     UserResourceAssembler userResourceAssembler;
 
+    @MockBean
     MongoTemplate mongoTemplate;
 
     @MockBean
     UserRepository userRepository;
+
+    @MockBean
+    PasswordEncoder passwordEncoder;
 
     private User user;
     private List<User> users;
@@ -63,7 +62,6 @@ public class ChatManagerControllerImplTest extends AbstractTest {
         users.add(user);
         users.add(user2);
         mongoTemplate = mock(MongoTemplate.class);
-        chatManagerController = spy(ChatManagerController.class);
     }
 
     @Test

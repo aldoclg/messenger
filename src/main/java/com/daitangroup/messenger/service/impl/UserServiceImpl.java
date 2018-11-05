@@ -5,7 +5,6 @@ import com.daitangroup.messenger.repository.UserRepository;
 import com.daitangroup.messenger.service.UserService;
 import org.apache.logging.log4j.util.Strings;
 import org.bson.types.ObjectId;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -22,14 +21,17 @@ import java.util.stream.Collectors;
 
 public class UserServiceImpl implements UserService {
 
-    @Autowired
     UserRepository userRepository;
 
-    @Autowired
     MongoTemplate mongoTemplate;
 
-    @Autowired
     PasswordEncoder passwordEncoder;
+
+    public UserServiceImpl(UserRepository userRepository, MongoTemplate mongoTemplate, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.mongoTemplate = mongoTemplate;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @Override
     public Optional<User> findUserByEmail(String email) {

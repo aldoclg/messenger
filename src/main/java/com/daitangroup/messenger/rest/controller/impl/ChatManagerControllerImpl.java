@@ -25,11 +25,15 @@ public class ChatManagerControllerImpl implements ChatManagerController {
 
     private static final int PAGE = 20;
 
-    @Autowired
     private UserService userService;
 
-    @Autowired
     private UserResourceAssembler assembler;
+
+    @Autowired
+    public ChatManagerControllerImpl(UserService userService, UserResourceAssembler assembler) {
+        this.userService = userService;
+        this.assembler = assembler;
+    }
 
     @Override
     public HttpEntity<User> saveUser(@RequestBody User user) {
