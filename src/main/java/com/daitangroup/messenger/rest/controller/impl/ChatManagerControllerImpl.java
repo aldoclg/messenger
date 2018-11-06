@@ -2,13 +2,14 @@ package com.daitangroup.messenger.rest.controller.impl;
 
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.*;
 
+import com.daitangroup.messenger.domain.ChatInfo;
 import com.daitangroup.messenger.domain.MessageInfo;
 import com.daitangroup.messenger.domain.User;
 import com.daitangroup.messenger.rest.component.UserResourceAssembler;
 import com.daitangroup.messenger.rest.controller.ChatManagerController;
+import com.daitangroup.messenger.service.ChatService;
 import com.daitangroup.messenger.service.UserService;
 import org.apache.logging.log4j.util.Strings;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.Resource;
@@ -29,9 +30,11 @@ public class ChatManagerControllerImpl implements ChatManagerController {
 
     private UserResourceAssembler assembler;
 
-    @Autowired
-    public ChatManagerControllerImpl(UserService userService, UserResourceAssembler assembler) {
+    private ChatService chatService;
+
+    public ChatManagerControllerImpl(UserService userService, ChatService chatService, UserResourceAssembler assembler) {
         this.userService = userService;
+        this.chatService = chatService;
         this.assembler = assembler;
     }
 
@@ -127,6 +130,20 @@ public class ChatManagerControllerImpl implements ChatManagerController {
         }
         catch (IllegalArgumentException | IndexOutOfBoundsException e) {
             return new ResponseEntity("Invalid Range header.", HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE);
+        }
+    }
+
+    @Override
+    public HttpEntity<ChatInfo> saveChat(@RequestBody ChatInfo[] chats) {
+        try {
+            List chatList = Arrays.asList(chats);
+            chatService.createChatOneToOne(chatList);
+            return new ResponseEntity(chats, HttpStatus.CREATED);
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+            System.err.println(e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

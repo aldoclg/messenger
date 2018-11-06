@@ -1,5 +1,6 @@
 package com.daitangroup.messenger.rest.controller;
 
+import com.daitangroup.messenger.domain.ChatInfo;
 import com.daitangroup.messenger.domain.MessageInfo;
 import com.daitangroup.messenger.domain.User;
 
@@ -9,6 +10,8 @@ import org.springframework.hateoas.Resources;
 import org.springframework.http.HttpEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -39,4 +42,7 @@ public interface ChatManagerController {
 
     @RequestMapping(value = "/chats/{chatId}/messages", method = RequestMethod.GET)
     HttpEntity<Resources<Resource<MessageInfo>>> findMessage(String chatId, String range);
+
+    @RequestMapping(value = "/chats", method = RequestMethod.PUT)
+    HttpEntity<ChatInfo> saveChat(ChatInfo[] chats);
 }

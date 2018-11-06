@@ -8,7 +8,7 @@ spring:
     hbase:
       zkQuorum: localhost:2181
       zkBasePath: /hbase
-      rootDir: file:///usr/local/hbase
+      rootDir: hdfs://localhost:9000/hbase #file:///usr/local/hbase
     mongodb:
       host: 127.0.0.1
       port: 27017

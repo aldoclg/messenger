@@ -31,7 +31,7 @@ public class ChatRepositoryImpl implements ChatRepository {
             putList.add(put);
         }
 
-        hbaseTemplate.execute(ConstantsUtils.MESSAGE_TABLE, new TableCallback<Void>() {
+        hbaseTemplate.execute(ConstantsUtils.CHAT_TABLE, new TableCallback<Void>() {
 
             @Override
             public Void doInTable(HTableInterface hTableInterface) throws Throwable {
@@ -42,9 +42,8 @@ public class ChatRepositoryImpl implements ChatRepository {
     }
 
     @Override
-    public void createChat(String chatName, String userId) {
-        String chatId = UUID.randomUUID().toString();
-        saveChat(new ChatInfo(chatId, chatName, userId));
+    public void createChat(ChatInfo chatInfo) {
+        saveChat(chatInfo);
     }
 
     @Override
@@ -75,7 +74,7 @@ public class ChatRepositoryImpl implements ChatRepository {
     private void saveChat(ChatInfo chatInfo) {
         Put put = new Put(Bytes.toBytes(UUID.randomUUID().toString()));
         mapperChatInfo(chatInfo, put);
-        hbaseTemplate.execute(ConstantsUtils.MESSAGE_TABLE, new TableCallback<Void>() {
+        hbaseTemplate.execute(ConstantsUtils.CHAT_TABLE, new TableCallback<Void>() {
 
             @Override
             public Void doInTable(HTableInterface hTableInterface) throws Throwable {
@@ -129,7 +128,7 @@ public class ChatRepositoryImpl implements ChatRepository {
             @Override
             public ChatInfo mapRow(Result result, int i) throws Exception {
 
-                return new ChatInfo(result.getValue(ChatInfo.columnFamillyChatAsBytes, ChatInfo.chatIdAsBytes),
+                return ChatInfo.bytesToChatInfo(result.getValue(ChatInfo.columnFamillyChatAsBytes, ChatInfo.chatIdAsBytes),
                         result.getValue(ChatInfo.columnFamillyChatAsBytes, ChatInfo.chatNameAsBytes),
                         result.getValue(ChatInfo.columnFamillyChatAsBytes, ChatInfo.userIdAsBytes),
                         result.raw()[0].getTimestamp());
