@@ -70,13 +70,9 @@ public class MessageRepositoryImpl implements MessageRepository {
     }
 
     private void saveMessage(Put put) {
-        hbaseTemplate.execute(ConstantsUtils.MESSAGE_TABLE, new TableCallback<Void>() {
-
-            @Override
-            public Void doInTable(HTableInterface hTableInterface) throws Throwable {
+        hbaseTemplate.execute(ConstantsUtils.MESSAGE_TABLE, hTableInterface -> {
                 hTableInterface.put(put);
                 return null;
-            }
         });
     }
 
@@ -117,16 +113,12 @@ public class MessageRepositoryImpl implements MessageRepository {
     }
 
     private List<MessageInfo> findMessageInfoByScan(Scan scan) {
-        return hbaseTemplate.find(ConstantsUtils.MESSAGE_TABLE, scan, new RowMapper<MessageInfo>() {
-            @Override
-            public MessageInfo mapRow(Result result, int i) throws Exception {
-
-                return new MessageInfo(result.getValue(MessageInfo.columnFamillyMessageAsBytes, MessageInfo.chatIdAsBytes),
-                        result.getValue(MessageInfo.columnFamillyMessageAsBytes, MessageInfo.contentAsBytes),
-                        result.getValue(MessageInfo.columnFamillyMessageAsBytes, MessageInfo.fromUserIdAsBytes),
-                        result.raw()[0].getTimestamp());
-            }
-        });
+        return hbaseTemplate.find(ConstantsUtils.MESSAGE_TABLE, scan, (result, i) ->
+                MessageInfo.bytesToMessageInfo(result.getValue(MessageInfo.columnFamillyMessageAsBytes, MessageInfo.chatIdAsBytes),
+                    result.getValue(MessageInfo.columnFamillyMessageAsBytes, MessageInfo.contentAsBytes),
+                    result.getValue(MessageInfo.columnFamillyMessageAsBytes, MessageInfo.fromUserIdAsBytes),
+                    result.raw()[0].getTimestamp())
+        );
     }
 
 }

@@ -1,8 +1,8 @@
 package com.daitangroup.messenger.rest.controller.impl;
 
-import com.fasterxml.jackson.core.JsonParseException;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import org.junit.runner.RunWith;
@@ -24,7 +24,9 @@ public class AbstractTest
 
     protected void setUp()
     {
-        mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
+        mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
+                .apply(springSecurity())
+                .build();
     }
 
     protected String mapToJson(Object object) throws JsonProcessingException {

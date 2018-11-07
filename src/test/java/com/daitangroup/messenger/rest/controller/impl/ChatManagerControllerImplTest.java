@@ -21,12 +21,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
@@ -61,12 +61,12 @@ public class ChatManagerControllerImplTest extends AbstractTest {
         User user2 = this.user = new User("João", "Silva", "blabla", "joao@email.com", "USER");
         users.add(user);
         users.add(user2);
-        mongoTemplate = mock(MongoTemplate.class);
     }
 
+    @WithMockUser(authorities = "ROLE_ADMIN")
     @Test
     public void shouldSaveUser() throws Exception {
-        String uri = "/api/v1/users";
+        String uri = URI_BASE;
 
         user.setId(new ObjectId());
 
@@ -80,9 +80,10 @@ public class ChatManagerControllerImplTest extends AbstractTest {
         assertEquals(CREATED.value(), mvcResult.getResponse().getStatus());
     }
 
+    @WithMockUser(authorities = "ROLE_ADMIN")
     @Test
     public void shouldNotSaveExistingUser() throws Exception {
-        String uri = "/api/v1/users";
+        String uri = URI_BASE;
 
         user.setId(new ObjectId());
 
@@ -97,9 +98,10 @@ public class ChatManagerControllerImplTest extends AbstractTest {
         assertEquals(user.toString(), CONFLICT.value(), mvcResult.getResponse().getStatus());
     }
 
+    @WithMockUser(authorities = "ROLE_ADMIN")
     @Test
     public void shouldNotSaveInvalidUser() throws Exception {
-        String uri = "/api/v1/users";
+        String uri = URI_BASE;
 
         user.setId(new ObjectId());
         user.setEmail(null);
@@ -112,10 +114,11 @@ public class ChatManagerControllerImplTest extends AbstractTest {
         assertEquals(user.toString(), BAD_REQUEST.value(), mvcResult.getResponse().getStatus());
     }
 
+    @WithMockUser(authorities = "ROLE_ADMIN")
     @Test
     public void shouldUpdateUser() throws Exception {
 
-        String uri = "/api/v1/users/sflçjlfasçjas";
+        String uri = URI_BASE + "/sflçjlfasçjas";
 
         user.setId(new ObjectId());
 
@@ -128,9 +131,10 @@ public class ChatManagerControllerImplTest extends AbstractTest {
         assertEquals(ACCEPTED.value(), mvcResult.getResponse().getStatus());
     }
 
+    @WithMockUser(authorities = "ROLE_ADMIN")
     @Test
     public void shouldDeleteUser() throws Exception {
-        String uri = "/api/v1/users/sflçjlfasçjas";
+        String uri = URI_BASE + "/sflçjlfasçjas";;
 
         MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders.delete(uri)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -141,9 +145,10 @@ public class ChatManagerControllerImplTest extends AbstractTest {
         assertEquals(ACCEPTED.value(), mvcResult.getResponse().getStatus());
     }
 
+    @WithMockUser(authorities = "ROLE_USER")
     @Test
     public void shouldFindUserById() throws Exception {
-        String uri = "/api/v1/users/sflçjlfasçjas";
+        String uri = URI_BASE + "/sflçjlfasçjas";;
 
         when(userService.find(anyString())).thenReturn(Optional.of(user));
 
@@ -156,9 +161,10 @@ public class ChatManagerControllerImplTest extends AbstractTest {
         assertEquals(OK.value(), mvcResult.getResponse().getStatus());
     }
 
+    @WithMockUser(authorities = "ROLE_USER")
     @Test
     public void shouldNotFindUserById() throws Exception {
-        String uri = "/api/v1/users/sflçjlfasçjas";
+        String uri = URI_BASE + "/sflçjlfasçjas";;
 
         when(userService.find(anyString())).thenReturn(Optional.empty());
 
@@ -171,9 +177,10 @@ public class ChatManagerControllerImplTest extends AbstractTest {
         assertEquals(NOT_FOUND.value(), mvcResult.getResponse().getStatus());
     }
 
+    @WithMockUser(authorities = "ROLE_USER")
     @Test
     public void shouldFindUserByName() throws Exception {
-        String uri = "/api/v1/users";
+        String uri = URI_BASE;
 
         when(userService.findUserByNameOrLastName(anyString(), anyString(), any())).thenReturn(users);
 
@@ -189,9 +196,10 @@ public class ChatManagerControllerImplTest extends AbstractTest {
         assertEquals(ACCEPTED.value(), mvcResult.getResponse().getStatus());
     }
 
+    @WithMockUser(authorities = "ROLE_USER")
     @Test
     public void shouldFindUserByLastName() throws Exception {
-        String uri = "/api/v1/users";
+        String uri = URI_BASE;
 
         when(userService.findUserByNameOrLastName(anyString(), anyString(), any())).thenReturn(users);
 
@@ -207,9 +215,10 @@ public class ChatManagerControllerImplTest extends AbstractTest {
         assertEquals(ACCEPTED.value(), mvcResult.getResponse().getStatus());
     }
 
+    @WithMockUser(authorities = "ROLE_USER")
     @Test
     public void shouldNotFindUserByNameWithInvalidRange() throws Exception {
-        String uri = "/api/v1/users";
+        String uri = URI_BASE;
 
         MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders.post(uri)
                 .content("{}")
@@ -234,9 +243,10 @@ public class ChatManagerControllerImplTest extends AbstractTest {
         assertEquals(REQUESTED_RANGE_NOT_SATISFIABLE.value(), mvcResult.getResponse().getStatus());
     }
 
+    @WithMockUser(authorities = "ROLE_ADMIN")
     @Test
     public void shouldFindAllUsers() throws Exception {
-        String uri = "/api/v1/users";
+        String uri = URI_BASE;
 
         when(userService.findAll(any())).thenReturn(users);
 
@@ -250,9 +260,25 @@ public class ChatManagerControllerImplTest extends AbstractTest {
         assertEquals(PARTIAL_CONTENT.value(), mvcResult.getResponse().getStatus());
     }
 
+    @WithMockUser(authorities = "ROLE_USER")
+    @Test
+    public void shouldNotFindAllUsersWithInvalidRole() throws Exception {
+        String uri = URI_BASE;
+
+        MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders.get(uri)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Range", "binary=0-10")
+                .accept("application/json"))
+                .andDo(print())
+                .andReturn();
+
+        assertEquals(FORBIDDEN.value(), mvcResult.getResponse().getStatus());
+    }
+
+    @WithMockUser(authorities = "ROLE_ADMIN")
     @Test
     public void shouldNotFindAllUsersWithInvalidRange() throws Exception {
-        String uri = "/api/v1/users";
+        String uri = URI_BASE;
 
         MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders.get(uri)
                 .contentType(MediaType.APPLICATION_JSON)

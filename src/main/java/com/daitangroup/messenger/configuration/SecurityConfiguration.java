@@ -30,10 +30,12 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/webjars/**", "/static/**", "/", "/login").permitAll()
+                .antMatchers("/webjars/**", "/static/**", "/", "/login",  "/socket/**", "/messenger/**").permitAll()
                 .antMatchers("/api/v1/**").hasAnyRole("ADMIN", "AUDIT", "USER")
                 .and()
                 .formLogin().permitAll().loginProcessingUrl("/login")
+                .and()
+                .headers().frameOptions().sameOrigin()
                 .and()
                 .logout().permitAll();
     }

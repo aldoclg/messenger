@@ -35,4 +35,9 @@ public class ChatServiceImpl implements ChatService {
             chatRepository.createChat(chat);
         }
     }
+
+    @Override
+    public List<ChatInfo> findChat(String chatId) {
+        return chatRepository.findChat(chatId);
+    }
 }

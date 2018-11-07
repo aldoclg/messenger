@@ -1,7 +1,11 @@
 package com.daitangroup.messenger.domain;
 
 import com.daitangroup.messenger.constants.ConstantsUtils;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.hadoop.hbase.util.Bytes;
+
+import java.util.Objects;
 
 
 public class MessageInfo {
@@ -13,14 +17,16 @@ public class MessageInfo {
     public static final byte[] contentAsBytes = Bytes.toBytes("content");
     public static final byte[] fromUserIdAsBytes = Bytes.toBytes("fromUserId");
 
-    public MessageInfo(byte[] content, byte[] fromUser, byte[] chatId, long timestamp) {
-        this.content = Bytes.toString(content);
-        this.fromUserId = Bytes.toString(fromUser);
-        this.chatId = Bytes.toString(chatId);
-        this.timestamp = timestamp;
+    public static final MessageInfo bytesToMessageInfo(byte[] content, byte[] fromUser, byte[] chatId, long timestamp) {
+        MessageInfo messageInfo = new MessageInfo(Bytes.toString(content), Bytes.toString(fromUser), Bytes.toString(chatId));
+        messageInfo.setTimestamp(timestamp);
+        return messageInfo;
     }
 
-    public MessageInfo(String content, String fromUser, String chatId) {
+    @JsonCreator
+    public MessageInfo(@JsonProperty(value = "content", required = false) String content,
+                       @JsonProperty(value = "fromUser", required = false) String fromUser,
+                       @JsonProperty(value = "chatId", required = false) String chatId) {
         this.content = content;
         this.fromUserId = fromUser;
         this.chatId = chatId;
@@ -64,5 +70,30 @@ public class MessageInfo {
 
     public void setChatId(String chatId) {
         this.chatId = chatId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MessageInfo that = (MessageInfo) o;
+        return timestamp == that.timestamp &&
+                Objects.equals(fromUserId, that.fromUserId) &&
+                Objects.equals(chatId, that.chatId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(fromUserId, chatId, timestamp);
+    }
+
+    @Override
+    public String toString() {
+        return "MessageInfo{" +
+                "content='" + content + '\'' +
+                ", fromUserId='" + fromUserId + '\'' +
+                ", chatId='" + chatId + '\'' +
+                ", timestamp=" + timestamp +
+                '}';
     }
 }

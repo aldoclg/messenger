@@ -31,13 +31,9 @@ public class ChatRepositoryImpl implements ChatRepository {
             putList.add(put);
         }
 
-        hbaseTemplate.execute(ConstantsUtils.CHAT_TABLE, new TableCallback<Void>() {
-
-            @Override
-            public Void doInTable(HTableInterface hTableInterface) throws Throwable {
-                hTableInterface.put(putList);
-                return null;
-            }
+        hbaseTemplate.execute(ConstantsUtils.CHAT_TABLE, hTableInterface -> {
+            hTableInterface.put(putList);
+            return null;
         });
     }
 
@@ -74,13 +70,10 @@ public class ChatRepositoryImpl implements ChatRepository {
     private void saveChat(ChatInfo chatInfo) {
         Put put = new Put(Bytes.toBytes(UUID.randomUUID().toString()));
         mapperChatInfo(chatInfo, put);
-        hbaseTemplate.execute(ConstantsUtils.CHAT_TABLE, new TableCallback<Void>() {
 
-            @Override
-            public Void doInTable(HTableInterface hTableInterface) throws Throwable {
-                hTableInterface.put(put);
-                return null;
-            }
+        hbaseTemplate.execute(ConstantsUtils.CHAT_TABLE, hTableInterface -> {
+            hTableInterface.put(put);
+            return null;
         });
     }
 
@@ -124,15 +117,11 @@ public class ChatRepositoryImpl implements ChatRepository {
     }
 
     private List<ChatInfo> findChatInfoByScan(Scan scan) {
-        return hbaseTemplate.find(ConstantsUtils.CHAT_TABLE, scan, new RowMapper<ChatInfo>() {
-            @Override
-            public ChatInfo mapRow(Result result, int i) throws Exception {
-
-                return ChatInfo.bytesToChatInfo(result.getValue(ChatInfo.columnFamillyChatAsBytes, ChatInfo.chatIdAsBytes),
-                        result.getValue(ChatInfo.columnFamillyChatAsBytes, ChatInfo.chatNameAsBytes),
-                        result.getValue(ChatInfo.columnFamillyChatAsBytes, ChatInfo.userIdAsBytes),
-                        result.raw()[0].getTimestamp());
-            }
-        });
+        return hbaseTemplate.find(ConstantsUtils.CHAT_TABLE, scan, (result, i) ->
+            ChatInfo.bytesToChatInfo(result.getValue(ChatInfo.columnFamillyChatAsBytes, ChatInfo.chatIdAsBytes),
+                    result.getValue(ChatInfo.columnFamillyChatAsBytes, ChatInfo.chatNameAsBytes),
+                    result.getValue(ChatInfo.columnFamillyChatAsBytes, ChatInfo.userIdAsBytes),
+                    result.raw()[0].getTimestamp())
+        );
     }
 }

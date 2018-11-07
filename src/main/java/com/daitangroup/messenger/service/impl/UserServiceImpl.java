@@ -21,11 +21,11 @@ import java.util.stream.Collectors;
 
 public class UserServiceImpl implements UserService {
 
-    UserRepository userRepository;
+    private UserRepository userRepository;
 
-    MongoTemplate mongoTemplate;
+    private MongoTemplate mongoTemplate;
 
-    PasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;
 
     public UserServiceImpl(UserRepository userRepository, MongoTemplate mongoTemplate, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;

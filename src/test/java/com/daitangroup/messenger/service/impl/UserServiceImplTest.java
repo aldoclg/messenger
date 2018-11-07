@@ -29,19 +29,19 @@ import static org.junit.Assert.*;
 public class UserServiceImplTest extends AbstractTest {
 
     @Autowired
-    PasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;
 
-    UserService userService;
+    private UserService userService;
 
-    MongoTemplate mongoTemplateMock;
+    private MongoTemplate mongoTemplateMock;
 
-    UserRepository userRepositoryMock;
+    private UserRepository userRepositoryMock;
 
-    User user;
+    private User user;
 
-    ObjectId objectId;
+    private ObjectId objectId;
 
-    Pageable pageable;
+    private Pageable pageable;
 
     @Before
     public void setup() {

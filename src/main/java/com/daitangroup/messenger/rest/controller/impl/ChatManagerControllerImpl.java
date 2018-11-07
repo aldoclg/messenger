@@ -142,7 +142,6 @@ public class ChatManagerControllerImpl implements ChatManagerController {
         }
         catch(Exception e) {
             e.printStackTrace();
-            System.err.println(e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

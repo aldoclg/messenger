@@ -8,4 +8,6 @@ import java.util.List;
 @Service
 public interface ChatService {
     void createChatOneToOne(List<ChatInfo> chats);
+
+    List<ChatInfo> findChat(String chatId);
 }
