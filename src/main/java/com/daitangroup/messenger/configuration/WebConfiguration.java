@@ -18,6 +18,8 @@ import com.daitangroup.messenger.service.impl.MessageServiceImpl;
 import com.daitangroup.messenger.service.impl.UserServiceImpl;
 import com.daitangroup.messenger.websocket.ChatBrokerController;
 import com.daitangroup.messenger.websocket.impl.ChatBrokerControllerImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -40,6 +42,8 @@ public class WebConfiguration implements WebMvcConfigurer {
 
     private SimpMessagingTemplate simpMessagingTemplate;
 
+    private Logger LOGGER = LoggerFactory.getLogger(WebConfiguration.class);
+
     public WebConfiguration(UserResourceAssembler assembler,
                             UserRepository userRepository,
                             PasswordEncoder passwordEncoder,
@@ -56,41 +60,49 @@ public class WebConfiguration implements WebMvcConfigurer {
 
     @Bean
     public UserService userService() {
+        LOGGER.debug("Created UserService.");
         return new UserServiceImpl(userRepository, mongoTemplate, passwordEncoder);
     }
 
     @Bean
     ChatService chatService()   {
+        LOGGER.debug("Created ChatService");
         return new ChatServiceImpl(chatRepository(), userService());
     }
 
     @Bean
     ChatBrokerService chatBrokerService() {
+        LOGGER.debug("Created ChatBrokerService.");
         return new ChatBrokerServiceImpl(simpMessagingTemplate, chatService(), messageService());
     }
 
     @Bean
     MessageService messageService() {
+        LOGGER.debug("Created MessageService.");
         return new MessageServiceImpl(messageRepository());
     }
 
     @Bean
     ChatRepository chatRepository() {
+        LOGGER.debug("Created ChatRepository.");
         return new ChatRepositoryImpl();
     }
 
     @Bean
     MessageRepository messageRepository() {
+        LOGGER.debug("Created MessageRepository.");
         return new MessageRepositoryImpl();
     }
 
     @Bean
     public ChatManagerController chatManagerController() {
+        LOGGER.debug("Created ChatManagerController.");
         return new ChatManagerControllerImpl(userService(), chatService(), assembler);
     }
 
     @Bean
     public ChatBrokerController chatBrokerController() {
+        LOGGER.debug("Created ChatBrokerController.");
         return new ChatBrokerControllerImpl(chatBrokerService());
     }
 
@@ -101,5 +113,6 @@ public class WebConfiguration implements WebMvcConfigurer {
                 .allowCredentials(false)
                 .allowedMethods("*")
                 .maxAge(3600);
+        LOGGER.info("Configured CORS ", registry.toString());
     }
 }

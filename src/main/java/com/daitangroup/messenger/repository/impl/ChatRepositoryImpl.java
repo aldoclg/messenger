@@ -6,6 +6,8 @@ import com.daitangroup.messenger.repository.ChatRepository;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.*;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.hadoop.hbase.HbaseTemplate;
 import org.springframework.data.hadoop.hbase.RowMapper;
@@ -17,11 +19,14 @@ import java.util.UUID;
 
 public class ChatRepositoryImpl implements ChatRepository {
 
+    private Logger LOGGER = LoggerFactory.getLogger(ChatRepositoryImpl.class);
+
     @Autowired
     private HbaseTemplate hbaseTemplate;
 
     @Override
     public void createChat(String chatName, String... userId) {
+        LOGGER.info("Called createChat method {} {}", chatName, userId);
         List<Put> putList = new ArrayList<>();
         String chatId = UUID.randomUUID().toString();
         for (String u: userId) {
@@ -91,6 +96,7 @@ public class ChatRepositoryImpl implements ChatRepository {
 
     @Override
     public List<ChatInfo> findChat(String chatId) {
+        LOGGER.info("Called findChat method {}", chatId);
         SingleColumnValueFilter filter = new SingleColumnValueFilter(ChatInfo.columnFamillyChatAsBytes,
                 ChatInfo.chatIdAsBytes,
                 CompareFilter.CompareOp.EQUAL,
@@ -100,6 +106,7 @@ public class ChatRepositoryImpl implements ChatRepository {
 
     @Override
     public List<ChatInfo> findChatByUserId(String userId) {
+        LOGGER.info("Called findChatByUserId method {}", userId);
         SingleColumnValueFilter filter = new SingleColumnValueFilter(ChatInfo.columnFamillyChatAsBytes,
                 ChatInfo.userIdAsBytes,
                 CompareFilter.CompareOp.EQUAL,

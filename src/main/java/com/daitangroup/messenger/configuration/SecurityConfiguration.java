@@ -1,6 +1,10 @@
 package com.daitangroup.messenger.configuration;
 
+import com.daitangroup.messenger.service.UserService;
 import com.daitangroup.messenger.service.impl.UserDetailsServiceImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -21,9 +25,15 @@ import java.util.Map;
 @EnableGlobalMethodSecurity(prePostEnabled = true, proxyTargetClass = true)
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
+    private Logger LOGGER = LoggerFactory.getLogger(SecurityConfiguration.class);
+
+    @Autowired
+    private UserService userService;
+
     @Bean
     public UserDetailsService userDetailsService() {
-        return new UserDetailsServiceImpl();
+        LOGGER.debug("Configured UserDetailsService.");
+        return new UserDetailsServiceImpl(userService, delegatingPasswordEncoder());
     }
 
     @Override
@@ -38,6 +48,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .headers().frameOptions().sameOrigin()
                 .and()
                 .logout().permitAll();
+        LOGGER.info("Configured HttpSecurity.", http);
     }
 
     @Override
@@ -45,6 +56,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         auth.eraseCredentials(false)
                 .userDetailsService(userDetailsService())
                 .passwordEncoder(delegatingPasswordEncoder());
+        LOGGER.info("Configured AuthenticationManager.", auth);
     }
 
     @Bean
@@ -55,6 +67,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         encoders.put("scrypt", new SCryptPasswordEncoder());
         DelegatingPasswordEncoder passworEncoder = new DelegatingPasswordEncoder("bcrypt", encoders);
         passworEncoder.setDefaultPasswordEncoderForMatches(defaultEncoder);
+        LOGGER.info("Configured PasswordEncoder ", passworEncoder);
         return passworEncoder;
     }
 

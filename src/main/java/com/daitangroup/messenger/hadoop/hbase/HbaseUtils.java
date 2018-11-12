@@ -7,6 +7,8 @@ import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Bean;
 import org.apache.hadoop.hbase.HTableDescriptor;
@@ -18,11 +20,14 @@ import java.io.IOException;
 @Component
 public class HbaseUtils implements InitializingBean {
 
+    private Logger LOGGER = LoggerFactory.getLogger(HbaseUtils.class);
+
     private HBaseAdmin admin;
 
     @Bean
     HBaseAdmin hBaseAdmin() throws IOException {
         HBaseConfiguration hBaseConfiguration = new HBaseConfiguration(new Configuration());
+        LOGGER.debug("Created HBaseAdmin.");
         return new HBaseAdmin(hBaseConfiguration);
     }
 
@@ -42,27 +47,27 @@ public class HbaseUtils implements InitializingBean {
 
         if (admin.tableExists(table)) {
             if (admin.isTableDisabled(table)) {
-                System.out.printf("Disabled %s.\n", tableAsString);
+                LOGGER.info("Disabled {}.", tableAsString);
 
-                System.out.println("Enabling...");
+                LOGGER.info("Enabling...");
 
                 admin.enableTable(table);
 
-                System.out.println("Enabled.");
+                LOGGER.info("Enabled.");
             }
         }
         else {
-            System.out.printf("Table %s does not exists.\n", tableAsString);
+            LOGGER.info("Table {} does not exists.", tableAsString);
 
             HTableDescriptor tableDescriptor = new HTableDescriptor(tableAsString);
             HColumnDescriptor columnDescriptor = new HColumnDescriptor(columnFamily);
             tableDescriptor.addFamily(columnDescriptor);
 
-            System.out.println("Creating...");
+            LOGGER.info("Creating...");
 
             admin.createTable(tableDescriptor);
 
-            System.out.printf("Table %s created.\n", tableAsString);
+            LOGGER.info("Table {} created.", tableAsString);
         }
     }
     @Override

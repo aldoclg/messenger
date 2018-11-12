@@ -10,6 +10,8 @@ import com.daitangroup.messenger.rest.controller.ChatManagerController;
 import com.daitangroup.messenger.service.ChatService;
 import com.daitangroup.messenger.service.UserService;
 import org.apache.logging.log4j.util.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.hateoas.Resource;
@@ -24,6 +26,8 @@ import java.util.stream.Collectors;
 
 public class ChatManagerControllerImpl implements ChatManagerController {
 
+    private Logger LOGGER = LoggerFactory.getLogger(ChatManagerControllerImpl.class);
+
     private static final int PAGE = 20;
 
     private UserService userService;
@@ -33,6 +37,7 @@ public class ChatManagerControllerImpl implements ChatManagerController {
     private ChatService chatService;
 
     public ChatManagerControllerImpl(UserService userService, ChatService chatService, UserResourceAssembler assembler) {
+        LOGGER.info("Called constructor");
         this.userService = userService;
         this.chatService = chatService;
         this.assembler = assembler;
@@ -40,10 +45,13 @@ public class ChatManagerControllerImpl implements ChatManagerController {
 
     @Override
     public HttpEntity<User> saveUser(@RequestBody User user) {
+        LOGGER.info("Called saveUser {}", user);
         if(Objects.isNull(user)|| Strings.isBlank(user.getEmail())  || Strings.isBlank(user.getPassword()) || Strings.isBlank(user.getName())) {
+            LOGGER.debug("Returned {}", HttpStatus.BAD_REQUEST.value());
             return new ResponseEntity("User invalid.", HttpStatus.BAD_REQUEST);
         }
         if (userService.findUserByEmail(user.getEmail()).isPresent()) {
+            LOGGER.debug("Returned {}", HttpStatus.CONFLICT.value());
             return new ResponseEntity("User already exists.", HttpStatus.CONFLICT);
         }
         userService.save(user);
@@ -54,24 +62,29 @@ public class ChatManagerControllerImpl implements ChatManagerController {
     @Override
     public HttpEntity<User> updateUser(@RequestBody User user,
                                        @PathVariable("id") String id) {
+        LOGGER.info("Called updateUser {} {}", user, id);
         userService.update(id, user);
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
     @Override
     public HttpEntity<User> deleteUser(@PathVariable("id") String id) {
+        LOGGER.info("Called deleteUser {}", id);
         userService.delete(id);
         return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
 
     @Override
     public HttpEntity<Resource<User>> findUserById(@PathVariable("id") String id) {
+        LOGGER.info("Called findUserById {}", id);
         Optional<User> userOptional = userService.find(id);
         if (userOptional.isPresent())
         {
+            LOGGER.debug("Returned {}", HttpStatus.OK.value());
             return new ResponseEntity<>(new Resource<>(userOptional.get(),
                     linkTo(methodOn(ChatManagerController.class).findUserById(id)).withSelfRel()), HttpStatus.OK);
         }
+        LOGGER.error("Returned {}", HttpStatus.NOT_FOUND.value());
         return new ResponseEntity("User with id " + id + " not found.", HttpStatus.NOT_FOUND);
     }
 
@@ -79,12 +92,14 @@ public class ChatManagerControllerImpl implements ChatManagerController {
     public HttpEntity<Resources<Resource<User>>> findUserByName(@RequestParam(name = "name", required = false) String name,
                                                                 @RequestParam(name = "lastName", required = false) String lastName,
                                                                 @RequestHeader("Range") String range) {
+        LOGGER.info("Called findUserByName {} {}", name, lastName);
         List<User> users  = Collections.emptyList();
         List<Resource<User>> userResources = Collections.emptyList();
 
         try {
 
             if (Strings.isBlank(name) && Strings.isBlank(lastName)) {
+                LOGGER.debug("Returned {}", HttpStatus.ACCEPTED.value());
                 return new ResponseEntity(new Resources<>(userResources), HttpStatus.ACCEPTED);
             }
 
@@ -95,18 +110,22 @@ public class ChatManagerControllerImpl implements ChatManagerController {
                     .collect(Collectors.toList());
 
             if (users.isEmpty()) {
+                LOGGER.debug("Returned {}", HttpStatus.ACCEPTED.value());
                 return new ResponseEntity(new Resources<>(userResources), HttpStatus.ACCEPTED);
             }
-
+            LOGGER.debug("Returned {}", HttpStatus.PARTIAL_CONTENT.value());
             return new ResponseEntity(new Resources<>(userResources), HttpStatus.PARTIAL_CONTENT);
         }
         catch (IllegalArgumentException | IndexOutOfBoundsException e) {
+            LOGGER.error("Returned {}", HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE.value());
+            LOGGER.error("An error has occurred", e);
             return new ResponseEntity("Invalid Range header.", HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE);
         }
     }
 
     @Override
     public HttpEntity<Resources<Resource<User>>> findAllUsers(@RequestHeader("Range") String range) {
+        LOGGER.info("Called findAllUsers");
         try {
             Pageable pageable = createPageRequest(validateRange(range));
 
@@ -114,9 +133,12 @@ public class ChatManagerControllerImpl implements ChatManagerController {
                     .stream()
                     .map(assembler::toResource)
                     .collect(Collectors.toList());
+            LOGGER.debug("Returned {}", HttpStatus.PARTIAL_CONTENT.value());
             return new ResponseEntity<>(new Resources<>(users), HttpStatus.PARTIAL_CONTENT);
         }
         catch (IllegalArgumentException | IndexOutOfBoundsException e) {
+            LOGGER.error("Returned {}", HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE.value());
+            LOGGER.error("An error has occurred", e);
             return new ResponseEntity("Invalid Range header.", HttpStatus.REQUESTED_RANGE_NOT_SATISFIABLE);
         }
     }
@@ -135,13 +157,16 @@ public class ChatManagerControllerImpl implements ChatManagerController {
 
     @Override
     public HttpEntity<ChatInfo> saveChat(@RequestBody ChatInfo[] chats) {
+        LOGGER.info("Called saveChat {}", chats);
         try {
             List chatList = Arrays.asList(chats);
             chatService.createChatOneToOne(chatList);
+            LOGGER.debug("Returned {}", HttpStatus.CREATED.value());
             return new ResponseEntity(chats, HttpStatus.CREATED);
         }
         catch(Exception e) {
-            e.printStackTrace();
+            LOGGER.error("Returned {}", HttpStatus.INTERNAL_SERVER_ERROR.value());
+            LOGGER.error("An error has ocurred {}", e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -164,6 +189,7 @@ public class ChatManagerControllerImpl implements ChatManagerController {
     }
 
     private int[] parseRange(String range) {
+        LOGGER.info("Range {}", range);
         if (!Strings.isBlank(range)) {
             if (range.matches("(?i)\\w+=\\d+-\\d+")) {
                 String subRange = range.replaceFirst("(?i)\\w+=", "");

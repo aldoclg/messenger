@@ -6,6 +6,8 @@ import com.daitangroup.messenger.repository.MessageRepository;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.*;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.hadoop.hbase.HbaseTemplate;
 import org.springframework.data.hadoop.hbase.RowMapper;
@@ -17,11 +19,14 @@ import java.util.UUID;
 
 public class MessageRepositoryImpl implements MessageRepository {
 
+    private Logger LOGGER = LoggerFactory.getLogger(MessageRepositoryImpl.class);
+
     @Autowired
     private HbaseTemplate hbaseTemplate;
 
     @Override
     public void createMessage(MessageInfo messageInfo) {
+        LOGGER.info("Called createMessage method {}", messageInfo);
         saveMessage(messageInfo);
     }
 
@@ -31,8 +36,9 @@ public class MessageRepositoryImpl implements MessageRepository {
     }
 
     @Override
-    public void updateMessage(String UniqueId, String content) {
-        Put put = new Put(Bytes.toBytes(UniqueId));
+    public void updateMessage(String rowId, String content) {
+        LOGGER.info("Called updateMessage method {} {}", rowId, content);
+        Put put = new Put(Bytes.toBytes(rowId));
         put.add(MessageInfo.columnFamillyMessageAsBytes,
                 MessageInfo.contentAsBytes,
                 Bytes.toBytes(content));
@@ -41,6 +47,7 @@ public class MessageRepositoryImpl implements MessageRepository {
 
     @Override
     public List<MessageInfo> findMessageByChatId(String chatId, long startDate, long endDate) throws IOException {
+        LOGGER.info("Called findMessageByChatId method {} {} {}", chatId, startDate, endDate);
         SingleColumnValueFilter singleColumnValueFilter = new SingleColumnValueFilter(MessageInfo.columnFamillyMessageAsBytes,
                 MessageInfo.chatIdAsBytes,
                 CompareFilter.CompareOp.EQUAL,
@@ -55,6 +62,7 @@ public class MessageRepositoryImpl implements MessageRepository {
 
     @Override
     public List<MessageInfo> findMessageByUserId(String userId) {
+        LOGGER.info("Called findMessageByUserId method {}", userId);
         SingleColumnValueFilter singleColumnValueFilter = new SingleColumnValueFilter(MessageInfo.columnFamillyMessageAsBytes,
                 MessageInfo.fromUserIdAsBytes,
                 CompareFilter.CompareOp.EQUAL,

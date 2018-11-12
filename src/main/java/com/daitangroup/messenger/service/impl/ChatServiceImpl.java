@@ -5,12 +5,16 @@ import com.daitangroup.messenger.domain.User;
 import com.daitangroup.messenger.repository.ChatRepository;
 import com.daitangroup.messenger.service.ChatService;
 import com.daitangroup.messenger.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 public class ChatServiceImpl implements ChatService {
+
+    private Logger LOGGER = LoggerFactory.getLogger(ChatServiceImpl.class);
 
     ChatRepository chatRepository;
 
@@ -23,14 +27,17 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public void createChatOneToOne(List<ChatInfo> chatInfos) {
+        LOGGER.info("Called createdChatOneToOne method", chatInfos);
         for(ChatInfo chat: chatInfos) {
             Optional<User> optionalUser = userService.find(chat.getUserId());
+            LOGGER.debug("User {} exists : {}", chat.getUserId(), optionalUser.isPresent());
             if (!optionalUser.isPresent()) {
                 throw new IllegalArgumentException("User does not exists...");
             }
         }
         String chatId = UUID.randomUUID().toString();
         for(ChatInfo chat: chatInfos) {
+            LOGGER.debug("Creating chat {}", chat);
             chat.setChatId(chatId);
             chatRepository.createChat(chat);
         }
@@ -38,6 +45,7 @@ public class ChatServiceImpl implements ChatService {
 
     @Override
     public List<ChatInfo> findChat(String chatId) {
+        LOGGER.info("Called findChat method {}", chatId);
         return chatRepository.findChat(chatId);
     }
 }
