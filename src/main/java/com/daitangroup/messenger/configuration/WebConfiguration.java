@@ -5,6 +5,8 @@ import com.daitangroup.messenger.repository.MessageRepository;
 import com.daitangroup.messenger.repository.UserRepository;
 import com.daitangroup.messenger.repository.impl.ChatRepositoryImpl;
 import com.daitangroup.messenger.repository.impl.MessageRepositoryImpl;
+import com.daitangroup.messenger.rest.component.ChatResourceAssembler;
+import com.daitangroup.messenger.rest.component.MessageResourceAssembler;
 import com.daitangroup.messenger.rest.component.UserResourceAssembler;
 import com.daitangroup.messenger.rest.controller.ChatManagerController;
 import com.daitangroup.messenger.rest.controller.impl.ChatManagerControllerImpl;
@@ -32,7 +34,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfiguration implements WebMvcConfigurer {
 
-    private UserResourceAssembler assembler;
+    private UserResourceAssembler userAssembler;
+
+    private ChatResourceAssembler chatAssembler;
+
+    private MessageResourceAssembler messageAssembler;
 
     private UserRepository userRepository;
 
@@ -44,12 +50,16 @@ public class WebConfiguration implements WebMvcConfigurer {
 
     private Logger LOGGER = LoggerFactory.getLogger(WebConfiguration.class);
 
-    public WebConfiguration(UserResourceAssembler assembler,
+    public WebConfiguration(UserResourceAssembler userAssembler,
+                            ChatResourceAssembler chatAssembler,
+                            MessageResourceAssembler messageAssembler,
                             UserRepository userRepository,
                             PasswordEncoder passwordEncoder,
                             MongoTemplate mongoTemplate,
                             SimpMessagingTemplate simpMessagingTemplate) {
-        this.assembler = assembler;
+        this.userAssembler = userAssembler;
+        this.chatAssembler = chatAssembler;
+        this.messageAssembler = messageAssembler;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.mongoTemplate = mongoTemplate;
@@ -97,7 +107,12 @@ public class WebConfiguration implements WebMvcConfigurer {
     @Bean
     public ChatManagerController chatManagerController() {
         LOGGER.debug("Created ChatManagerController.");
-        return new ChatManagerControllerImpl(userService(), chatService(), assembler);
+        return new ChatManagerControllerImpl(userService(),
+                userAssembler,
+                chatAssembler,
+                messageAssembler,
+                chatService(),
+                messageService());
     }
 
     @Bean

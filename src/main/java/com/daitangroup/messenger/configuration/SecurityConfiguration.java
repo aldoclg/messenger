@@ -30,6 +30,15 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private AuthenticationEntryPoint authenticationEntryPoint;
+
+    @Autowired
+    private AuthenticationSuccessHandlerImpl authenticationSuccessHandler;
+
+    @Autowired
+    private AuthenticationFailureHandlerImpl authenticationFailureHandler;
+
     @Bean
     public UserDetailsService userDetailsService() {
         LOGGER.debug("Configured UserDetailsService.");
@@ -43,7 +52,11 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/webjars/**", "/static/**", "/", "/login",  "/socket/**", "/messenger/**").permitAll()
                 .antMatchers("/api/v1/**").hasAnyRole("ADMIN", "AUDIT", "USER")
                 .and()
-                .formLogin().permitAll().loginProcessingUrl("/login")
+                .httpBasic().authenticationEntryPoint(authenticationEntryPoint)
+                .and()
+                .formLogin()
+                .successHandler(authenticationSuccessHandler)
+                .failureHandler(authenticationFailureHandler)
                 .and()
                 .headers().frameOptions().sameOrigin()
                 .and()

@@ -33,7 +33,7 @@ public class ChatBrokerServiceImpl implements ChatBrokerService {
     @Override
     public void sendMessage(MessageInfo messageInfo) {
 
-        LOGGER.info("Called sendMessage {}", messageInfo);
+        LOGGER.info("Called sendMessage method {}", messageInfo);
 
         String chatId = messageInfo.getChatId();
         List<ChatInfo> chats = chatService.findChat(chatId);
@@ -45,6 +45,7 @@ public class ChatBrokerServiceImpl implements ChatBrokerService {
         for (ChatInfo c: toSendChatInfo) {
             LOGGER.debug("Sending to {} {}", c.getUserId(), messageInfo);
             simpMessagingTemplate.convertAndSend(SUBSCRIBE_TO_RECEIVE_MESSAGE_URN + c.getUserId(), messageInfo);
+            LOGGER.debug("Sent to url : {}", SUBSCRIBE_TO_RECEIVE_MESSAGE_URN + c.getUserId());
         }
 
     }
