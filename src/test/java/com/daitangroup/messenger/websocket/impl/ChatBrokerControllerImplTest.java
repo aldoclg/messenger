@@ -24,6 +24,7 @@ import org.springframework.web.socket.sockjs.client.WebSocketTransport;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -49,7 +50,7 @@ public class ChatBrokerControllerImplTest {
     public void setUp() throws Exception {
         completableFuture = new CompletableFuture<>();
         URL = "ws://localhost:" + port + "/socket/";
-        messageInfo = new MessageInfo("Hello, hello!!!", "5bd8879779fe6c6519c19c85", "54322c1c-600c-48ef-ac80-668b2baf307c");
+        messageInfo = new MessageInfo(UUID.randomUUID().toString(), "Hello, hello!!!", "5bd8879779fe6c6519c19c85", "Aldo","54322c1c-600c-48ef-ac80-668b2baf307c");
     }
 
     @WithMockUser(authorities = "ROLE_ADMIN")

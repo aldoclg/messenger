@@ -44,9 +44,10 @@ public class ChatBrokerServiceImpl implements ChatBrokerService {
 
         for (ChatInfo c: toSendChatInfo) {
             LOGGER.debug("Sending to {} {}", c.getUserId(), messageInfo);
+            messageService.createMessage(messageInfo);
             simpMessagingTemplate.convertAndSend(SUBSCRIBE_TO_RECEIVE_MESSAGE_URN + c.getUserId(), messageInfo);
             LOGGER.debug("Sent to url : {}", SUBSCRIBE_TO_RECEIVE_MESSAGE_URN + c.getUserId());
         }
-
     }
+
 }
