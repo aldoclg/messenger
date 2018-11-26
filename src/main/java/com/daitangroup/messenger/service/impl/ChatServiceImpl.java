@@ -48,4 +48,10 @@ public class ChatServiceImpl implements ChatService {
         LOGGER.info("Called findChat method {}", chatId);
         return chatRepository.findChat(chatId);
     }
+
+    @Override
+    public List<ChatInfo> findChatByUserId(String userId) {
+        LOGGER.info("Called findChatByUserId method {}", userId);
+        return chatRepository.findChatByUserId(userId);
+    }
 }

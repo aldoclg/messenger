@@ -14,6 +14,7 @@ import org.springframework.data.hadoop.hbase.RowMapper;
 import org.springframework.data.hadoop.hbase.TableCallback;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -48,11 +49,34 @@ public class MessageRepositoryImpl implements MessageRepository {
     @Override
     public List<MessageInfo> findMessageByChatId(String chatId, long startDate, long endDate) throws IOException {
         LOGGER.info("Called findMessageByChatId method {} {} {}", chatId, startDate, endDate);
-        SingleColumnValueFilter singleColumnValueFilter = new SingleColumnValueFilter(MessageInfo.columnFamillyMessageAsBytes,
+        SingleColumnValueFilter singleColumnValueFilter = createChatIdFilter(chatId);
+        return findMessageInfoByScan(createScan(singleColumnValueFilter, startDate, endDate));
+    }
+
+    @Override
+    public List<MessageInfo> findMessageByChatId(String chatId, int init, int end) {
+        LOGGER.info("Called findMessageByChatId method {}", chatId);
+
+        SingleColumnValueFilter singleColumnValueFilter = createChatIdFilter(chatId);
+        singleColumnValueFilter.setReversed(true);
+
+        Scan scan = createScan(singleColumnValueFilter);
+        List<MessageInfo> messages = findMessageInfoByScan(scan);
+
+        Collections.sort(messages, (e1, e2) -> e1.compareTo(e2));
+
+        if (messages.size() < end) {
+            end = messages.size();
+        }
+
+        return messages.subList(messages.size() - end, messages.size() - (init - 1));
+    }
+
+    private SingleColumnValueFilter createChatIdFilter(String chatId) {
+        return new SingleColumnValueFilter(MessageInfo.columnFamillyMessageAsBytes,
                 MessageInfo.chatIdAsBytes,
                 CompareFilter.CompareOp.EQUAL,
                 new BinaryComparator(Bytes.toBytes(chatId)));
-        return findMessageInfoByScan(createScan(singleColumnValueFilter, startDate, endDate));
     }
 
     @Override
@@ -72,7 +96,7 @@ public class MessageRepositoryImpl implements MessageRepository {
     }
 
     private void saveMessage(MessageInfo messageInfo) {
-        Put put = new Put(Bytes.toBytes(UUID.randomUUID().toString()));
+        Put put = new Put(Bytes.toBytes(messageInfo.getMessageId()));
         mapperMessageInfo(messageInfo, put);
         saveMessage(put);
     }
@@ -86,11 +110,17 @@ public class MessageRepositoryImpl implements MessageRepository {
 
     private void mapperMessageInfo(MessageInfo messageInfo, Put put) {
         put.add(MessageInfo.columnFamillyMessageAsBytes,
+                MessageInfo.messageIdAsBytes,
+                Bytes.toBytes(messageInfo.getMessageId()));
+        put.add(MessageInfo.columnFamillyMessageAsBytes,
                 MessageInfo.chatIdAsBytes,
                 Bytes.toBytes(messageInfo.getChatId()));
         put.add(MessageInfo.columnFamillyMessageAsBytes,
                 MessageInfo.fromUserIdAsBytes,
                 Bytes.toBytes(messageInfo.getFromUserId()));
+        put.add(MessageInfo.columnFamillyMessageAsBytes,
+                MessageInfo.fromNameAsBytes,
+                Bytes.toBytes(messageInfo.getFromName()));
         put.add(MessageInfo.columnFamillyMessageAsBytes,
                 MessageInfo.contentAsBytes,
                 Bytes.toBytes(messageInfo.getContent()));
@@ -122,10 +152,12 @@ public class MessageRepositoryImpl implements MessageRepository {
 
     private List<MessageInfo> findMessageInfoByScan(Scan scan) {
         return hbaseTemplate.find(ConstantsUtils.MESSAGE_TABLE, scan, (result, i) ->
-                MessageInfo.bytesToMessageInfo(result.getValue(MessageInfo.columnFamillyMessageAsBytes, MessageInfo.chatIdAsBytes),
-                    result.getValue(MessageInfo.columnFamillyMessageAsBytes, MessageInfo.contentAsBytes),
-                    result.getValue(MessageInfo.columnFamillyMessageAsBytes, MessageInfo.fromUserIdAsBytes),
-                    result.raw()[0].getTimestamp())
+                MessageInfo.bytesToMessageInfo(result.getValue(MessageInfo.columnFamillyMessageAsBytes, MessageInfo.messageIdAsBytes),
+                        result.getValue(MessageInfo.columnFamillyMessageAsBytes, MessageInfo.contentAsBytes),
+                        result.getValue(MessageInfo.columnFamillyMessageAsBytes, MessageInfo.fromUserIdAsBytes),
+                        result.getValue(MessageInfo.columnFamillyMessageAsBytes, MessageInfo.fromNameAsBytes),
+                        result.getValue(MessageInfo.columnFamillyMessageAsBytes, MessageInfo.chatIdAsBytes),
+                        result.raw()[0].getTimestamp())
         );
     }
 

@@ -20,4 +20,6 @@ public interface MessageRepository {
      List<MessageInfo> findMessage(long startDate, long endDate) throws IOException;
 
      List<MessageInfo> findMessageByUserId(String userId);
+
+     List<MessageInfo> findMessageByChatId(String chatId, int init, int end);
 }

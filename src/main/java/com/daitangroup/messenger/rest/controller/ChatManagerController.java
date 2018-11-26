@@ -34,13 +34,19 @@ public interface ChatManagerController {
     @RequestMapping(value = "/users", method = RequestMethod.POST)
     HttpEntity<Resources<Resource<User>>> findUserByName(String name, String lastName, String range);
 
+    @RequestMapping(value = "/users/v2", method = RequestMethod.POST)
+    HttpEntity<Resource<User>> findUserByEmail(String email);
+
     @PreAuthorize("hasRole('ADMIN')")
     @RequestMapping(value = "/users", method = RequestMethod.GET)
     HttpEntity<Resources<Resource<User>>> findAllUsers(String range);
 
     @RequestMapping(value = "/chats/{chatId}/messages", method = RequestMethod.GET)
-    HttpEntity<Resources<Resource<MessageInfo>>> findMessage(String chatId, String range);
+    HttpEntity<Resources<Resource<MessageInfo>>> findMessages(String chatId, String range);
 
     @RequestMapping(value = "/chats", method = RequestMethod.PUT)
     HttpEntity<ChatInfo> saveChat(ChatInfo[] chats);
+
+    @RequestMapping(value = "/chats/{userId}", method = RequestMethod.GET)
+    HttpEntity<Resources<Resource<ChatInfo>>> findChats(String userId, String range);
 }

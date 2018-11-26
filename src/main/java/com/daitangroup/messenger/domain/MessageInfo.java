@@ -8,37 +8,55 @@ import org.apache.hadoop.hbase.util.Bytes;
 import java.util.Objects;
 
 
-public class MessageInfo {
+public class MessageInfo implements Comparable<MessageInfo> {
 
     public static final byte[] tableNameAsBytes = Bytes.toBytes(ConstantsUtils.MESSAGE_TABLE);
     public static final String columnFamillyMessageInfo = "CF_MESSAGE_INFO";
     public static final byte[] columnFamillyMessageAsBytes = Bytes.toBytes(columnFamillyMessageInfo);
+    public static final byte[] messageIdAsBytes = Bytes.toBytes("messageId");
     public static final byte[] chatIdAsBytes = Bytes.toBytes("chatId");
     public static final byte[] contentAsBytes = Bytes.toBytes("content");
     public static final byte[] fromUserIdAsBytes = Bytes.toBytes("fromUserId");
+    public static final byte[] fromNameAsBytes = Bytes.toBytes("fromName");
 
-    public static final MessageInfo bytesToMessageInfo(byte[] content, byte[] fromUser, byte[] chatId, long timestamp) {
-        MessageInfo messageInfo = new MessageInfo(Bytes.toString(content), Bytes.toString(fromUser), Bytes.toString(chatId));
+    public static final MessageInfo bytesToMessageInfo(byte[] messageId, byte[] content, byte[] fromUserId, byte[] fromName, byte[] chatId, long timestamp) {
+        MessageInfo messageInfo = new MessageInfo(Bytes.toString(messageId), Bytes.toString(content), Bytes.toString(fromUserId), Bytes.toString(fromName), Bytes.toString(chatId));
         messageInfo.setTimestamp(timestamp);
         return messageInfo;
     }
 
     @JsonCreator
-    public MessageInfo(@JsonProperty(value = "content", required = false) String content,
-                       @JsonProperty(value = "fromUser", required = false) String fromUser,
+    public MessageInfo(@JsonProperty(value = "messageId", required = false) String messageId,
+                       @JsonProperty(value = "content", required = false) String content,
+                       @JsonProperty(value = "userId", required = false) String fromUserId,
+                       @JsonProperty(value = "name", required = false) String fromName,
                        @JsonProperty(value = "chatId", required = false) String chatId) {
+        this.messageId = messageId;
         this.content = content;
-        this.fromUserId = fromUser;
+        this.fromUserId = fromUserId;
+        this.fromName = fromName;
         this.chatId = chatId;
     }
+
+    private String messageId;
 
     private String content;
 
     private String fromUserId;
 
+    private String fromName;
+
     private String chatId;
 
     private long timestamp;
+
+    public String getMessageId() {
+        return messageId;
+    }
+
+    public void setMessageId(String messageId) {
+        this.messageId = messageId;
+    }
 
     public String getContent() {
         return content;
@@ -54,6 +72,14 @@ public class MessageInfo {
 
     public void setFromUserId(String fromUserId) {
         this.fromUserId = fromUserId;
+    }
+
+    public String getFromName() {
+        return fromName;
+    }
+
+    public void setFromName(String fromName) {
+        this.fromName = fromName;
     }
 
     public long getTimestamp() {
@@ -78,22 +104,32 @@ public class MessageInfo {
         if (o == null || getClass() != o.getClass()) return false;
         MessageInfo that = (MessageInfo) o;
         return timestamp == that.timestamp &&
+                Objects.equals(messageId, that.messageId) &&
                 Objects.equals(fromUserId, that.fromUserId) &&
                 Objects.equals(chatId, that.chatId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(fromUserId, chatId, timestamp);
+        return Objects.hash(messageId, fromUserId, chatId, timestamp);
     }
 
     @Override
     public String toString() {
         return "MessageInfo{" +
-                "content='" + content + '\'' +
+                "messageId='" + messageId + '\'' +
+                ", content='" + content + '\'' +
                 ", fromUserId='" + fromUserId + '\'' +
+                ", fromName='" + fromName + '\'' +
                 ", chatId='" + chatId + '\'' +
                 ", timestamp=" + timestamp +
                 '}';
     }
+
+    @Override
+    public int compareTo(MessageInfo o) {
+        return o.getTimestamp() < timestamp ? 1 : -1;
+    }
+
+
 }
